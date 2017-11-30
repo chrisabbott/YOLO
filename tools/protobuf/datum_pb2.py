@@ -89,8 +89,7 @@ _DATUM = _descriptor.Descriptor(
 
 DESCRIPTOR.message_types_by_name['Datum'] = _DATUM
 
-class Datum(_message.Message):
-  __metaclass__ = _reflection.GeneratedProtocolMessageType
+class Datum(_message.Message, metaclass=_reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _DATUM
 
   # @@protoc_insertion_point(class_scope:Datum)
