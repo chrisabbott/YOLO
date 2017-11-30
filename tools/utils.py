@@ -1,7 +1,8 @@
 import os
-import cv2
+#import cv2
 import numpy as np
 
+'''
 def _load_X():
     label_dir = 'VOCdevkit/VOC2012/labels/'
     image_dir = 'VOCdevkit/VOC2012/JPEGImages/'
@@ -21,6 +22,7 @@ def _load_X():
         X.append(cv2.imread(path, 1))
 
     return X
+'''
 
 def _format_y():
     pass
@@ -46,7 +48,7 @@ def read_images_from_lmdb(db_name, visualize):
         y.append(datum.label)
         idxs.append(idx)
     if visualize:
-        print "Visualizing a few images..."
+        print("Visualizing a few images...")
         for i in range(9):
             img = X[i]
             plt.subplot(3,3,i+1)
@@ -54,9 +56,27 @@ def read_images_from_lmdb(db_name, visualize):
             plt.title(y[i])
             plt.axis('off')
         plt.show()
-    print " ".join(["Reading from", db_name, "done!"])
     return X, y, idxs
 
+def imagenet_pipeline(env, keys, epochs=90, batch_size=256):
+    # Create a queue of keys
+    producer = tf.train.string_input_producer(keys, num_epochs=epochs)
+    key = producer.dequeue()
+
+    def retrieve_batch(key):
+        with env.begin() as txn:
+            val = txn.get(key)
+
+        X_s = get_example_from_val(val)
+        y_s = get_label_from_val(val)
+
+        return X_s, y_s
+
+    # Single X and y value pair
+    X_s, y_s = tf.py_func(retrieve_batch, [key], [tf.float64, tf.float64])
+    X, y = tf.train.batch([X_s, y_s], batch_size)
+
+    return X, y
 
 def main():
     load_pascal()
