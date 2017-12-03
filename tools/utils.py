@@ -2,7 +2,7 @@ import os
 import lmdb
 import numpy as np
 import tensorflow as tf
-import protobuf.datum_pb2
+from tools.protobuf import datum_pb2
 
 PATH = "/home/christian/Data/ILSVRC15/processed/ilsvrc12_val_lmdb/"
 
