@@ -10,6 +10,7 @@ vgg = nets.vgg
 
 FLAGS = tf.app.flags.FLAGS
 slim = tf.contrib.slim
+metrics = tf.contrib.metrics
 
 # Define os and dataset flags
 tf.app.flags.DEFINE_string('data_dir', '/home/christian/Data/ILSVRC/tfrecords/', 'Path to data directory')
@@ -28,35 +29,36 @@ tf.app.flags.DEFINE_integer('batch_size', 256, 'Batch size')
 tf.app.flags.DEFINE_integer('image_size', 299, 'Image size')
 tf.app.flags.DEFINE_integer('max_steps', 400, 'Maximum number of steps before termination')
 tf.app.flags.DEFINE_integer('num_epochs', 1, 'Total number of epochs')
+tf.app.flags.DEFINE_integer('num_evals', 10, 'Number of batches to evaluate')
 
 # Define a list of data files
 TRAIN_SHARDS = tf.gfile.Glob(FLAGS.train_dir)
 VAL_SHARDS = tf.gfile.Glob(FLAGS.val_dir)
 
-def train():
+def evaluate():
   with tf.Graph().as_default():
     images, labels = utils.load_batch(batch_size=FLAGS.batch_size, 
                                       num_epochs=FLAGS.num_epochs, 
-                                      shards=TRAIN_SHARDS)
+                                      shards=VAL_SHARDS,
+                                      train=False)
 
-    labels = tf.one_hot(labels, depth=1000)
-
-    # Define model
     predictions = model.tiny_yolo(images, pretrain=True)
+    predictions = tf.to_int32(tf.argmax(predictions, 1))
 
-    # Define loss function and optimizer
-    loss = tf.losses.softmax_cross_entropy(labels, predictions)
-    optimizer = tf.train.GradientDescentOptimizer(learning_rate=FLAGS.initial_learning_rate)
+    metrics_to_values, metrics_to_updates = metrics.aggregate_metric_map({
+        'mse': metrics.streaming_mean_squared_error(predictions, labels),
+        'accuracy': metrics.streaming_accuracy(predictions, labels),
+        })
 
-    # Create training op
-    train_op = slim.learning.create_train_op(loss, optimizer, summarize_gradients=True)
+    for metric_name, metric_value in metrics_to_values.items():
+        tf.summary.scalar(metric_name, metric_value)
 
-    # Initialize training
-    slim.learning.train(train_op,
-                        FLAGS.trainlog_dir,
-                        number_of_steps=None,
-                        #number_of_steps=FLAGS.max_steps,
-                        save_summaries_secs=300,
-                        save_interval_secs=300)
+    slim.evaluation.evaluation_loop(
+        '',
+        FLAGS.trainlog_dir,
+        FLAGS.evallog_dir,
+        num_evals=FLAGS.num_evals,
+        eval_op = list(metrics_to_updates.values()),
+        eval_interval_secs=120)
 
-train()
+evaluate()
