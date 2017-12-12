@@ -102,6 +102,30 @@ def distort_image(image, height, width, bbox, thread_id=0, scope=None):
     return distorted_image
 
 
+def eval_image(image, height, width, scope=None):
+  """Prepare one image for evaluation.
+  Args:
+    image: 3-D float Tensor
+    height: integer
+    width: integer
+    scope: Optional scope for name_scope.
+  Returns:
+    3-D float Tensor of prepared image.
+  """
+  with tf.name_scope(values=[image, height, width], name=scope,
+                     default_name='eval_image'):
+    # Crop the central region of the image with an area containing 87.5% of
+    # the original image.
+    image = tf.image.central_crop(image, central_fraction=0.875)
+
+    # Resize the image to the original height and width.
+    image = tf.expand_dims(image, 0)
+    image = tf.image.resize_bilinear(image, [height, width],
+                                     align_corners=False)
+    image = tf.squeeze(image, [0])
+    return image
+
+
 def distort_color(image, thread_id=0, scope=None):
   """Distort the color of the image.
   Each color distortion is non-commutative and thus ordering of the color ops
@@ -231,6 +255,7 @@ def image_preprocessing(image_buffer, bbox, train, thread_id=0):
   image = tf.subtract(image, 0.5)
   image = tf.multiply(image, 2.0)
   return image
+
 
 def load_batch(batch_size, num_epochs, shards, train=True):
   with tf.name_scope('load_batch'):
