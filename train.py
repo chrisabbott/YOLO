@@ -12,9 +12,10 @@ FLAGS = tf.app.flags.FLAGS
 slim = tf.contrib.slim
 
 # Define os and dataset flags
-tf.app.flags.DEFINE_string('data_dir', '/Users/christian/Data/ILSVRC/tfrecords/', 'Path to data directory')
-tf.app.flags.DEFINE_string('train_dir', '/Users/christian/Data/ILSVRC/tfrecords/train-*', 'Path to training data')
-tf.app.flags.DEFINE_string('val_dir', '/Users/christian/Data/ILSVRC/tfrecords/validation-*', 'Path to validation data')
+tf.app.flags.DEFINE_string('data_dir', '/home/christian/Data/ILSVRC/tfrecords/', 'Path to data directory')
+tf.app.flags.DEFINE_string('train_dir', '/home/christian/Data/ILSVRC/tfrecords/train-*', 'Path to training data')
+tf.app.flags.DEFINE_string('val_dir', '/home/christian/Data/ILSVRC/tfrecords/validation-*', 'Path to validation data')
+tf.app.flags.DEFINE_string('log_dir', '/home/christian/YOLO/logs', 'Path to the log folder')
 tf.app.flags.DEFINE_integer('train_samples', 1281167, 'Number of training samples in ImageNet')
 tf.app.flags.DEFINE_integer('validation_samples', 50000, 'Number of validation samples in ImageNet')
 tf.app.flags.DEFINE_integer('num_classes', 1000, 'Number of classes in ImageNet, plus one for Null class')
@@ -39,29 +40,25 @@ VAL_SHARDS = tf.gfile.Glob(FLAGS.val_dir)
 
 def train():
   with tf.Graph().as_default():
-    X = tf.placeholder(tf.float32,
-                       shape=(FLAGS.batch_size,
-                              FLAGS.image_size,
-                              FLAGS.image_size,
-                              3))
-
-    #net = model.tiny_yolo(X, pretrain=True)
-
     images, labels = utils.load_batch(batch_size=FLAGS.batch_size, 
-                                    num_epochs=FLAGS.num_epochs, 
-                                    shards=TRAIN_SHARDS)
+                                      num_epochs=FLAGS.num_epochs, 
+                                      shards=TRAIN_SHARDS)
 
-    predictions = model.tiny_yolo(X, pretrain=True)
-    #predictions = vgg.vgg_16(images, is_training=True)
+    # Define model
+    predictions = model.tiny_yolo(images, pretrain=True)
 
-    #predictions = net(images)
+    # Define loss function and optimizer
     loss = slim.losses.softmax_cross_entropy(predictions, labels)
+    optimizer = tf.train.GradientDescentOptimizer(learning_rate=FLAGS.learning_rate)
 
-    total_loss = slim.losses.get_total_loss()
-    tf.summry_scalar('losses/total_loss', total_loss)
+    # Create training op
+    train_op = slim.learning.create_train_op(loss, optimizer)
 
-    optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.001)
-    train_tensor = slim.learning.create_train_op(total_loss, optimizer)
-    slim.learning.train(train_tensor, train_log_dir)
+    # Initialize training
+    slim.learning.train(train_op, 
+                        FLAGS.log_dir,
+                        number_of_steps=FLAGS.max_steps,
+                        save_summaries_secs=300,
+                        save_interval_secs=300)
 
 train()

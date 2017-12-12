@@ -27,13 +27,15 @@ def tiny_yolo(inputs, pretrain=False):
 
     if pretrain:
       net = slim.avg_pool2d(net, [2,2], stride=1)
-      net = slim.fully_connected(net, 1000)
+      net = slim.flatten(net)
+      net = slim.fully_connected(net, 1000, activation_fn=slim.softmax)
       return net
 
     net = slim.conv2d(net, 512, [3,3])
     net = slim.conv2d(net, 425, [3,3])
     net = slim.fully_connected(net, 4096)
-    net = slim.fully_connected(net, 7 * 7 * 30)
+    net = slim.flatten(net)
+    net = slim.fully_connected(net, 7 * 7 * 30, activation_fn=slim.softmax)
     return net
 
 # For testing
