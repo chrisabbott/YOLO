@@ -24,8 +24,8 @@ tf.app.flags.DEFINE_integer('num_classes', 1000, 'Number of classes in ImageNet'
 
 # Define training flags
 tf.app.flags.DEFINE_float('initial_learning_rate', 0.005, 'Initial learning rate')
-tf.app.flags.DEFINE_integer('batch_size', 256, 'Batch size')
-tf.app.flags.DEFINE_integer('image_size', 299, 'Image size')
+tf.app.flags.DEFINE_integer('batch_size', 128, 'Batch size')
+tf.app.flags.DEFINE_integer('image_size', 224, 'Image size')
 tf.app.flags.DEFINE_integer('max_steps', 400, 'Maximum number of steps before termination')
 tf.app.flags.DEFINE_integer('num_epochs', 1, 'Total number of epochs')
 
@@ -56,7 +56,7 @@ def train():
                         FLAGS.trainlog_dir,
                         number_of_steps=None,
                         #number_of_steps=FLAGS.max_steps,
-                        save_summaries_secs=300,
-                        save_interval_secs=300)
+                        save_summaries_secs=30,
+                        save_interval_secs=30)
 
 train()

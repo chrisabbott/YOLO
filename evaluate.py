@@ -25,11 +25,11 @@ tf.app.flags.DEFINE_integer('num_classes', 1000, 'Number of classes in ImageNet'
 
 # Define training flags
 tf.app.flags.DEFINE_float('initial_learning_rate', 0.005, 'Initial learning rate')
-tf.app.flags.DEFINE_integer('batch_size', 256, 'Batch size')
-tf.app.flags.DEFINE_integer('image_size', 299, 'Image size')
+tf.app.flags.DEFINE_integer('batch_size', 128, 'Batch size')
+tf.app.flags.DEFINE_integer('image_size', 224, 'Image size')
 tf.app.flags.DEFINE_integer('max_steps', 400, 'Maximum number of steps before termination')
 tf.app.flags.DEFINE_integer('num_epochs', 1, 'Total number of epochs')
-tf.app.flags.DEFINE_integer('num_evals', 10, 'Number of batches to evaluate')
+tf.app.flags.DEFINE_integer('num_evals', 40, 'Number of batches to evaluate')
 
 # Define a list of data files
 TRAIN_SHARDS = tf.gfile.Glob(FLAGS.train_dir)
@@ -59,6 +59,6 @@ def evaluate():
         FLAGS.evallog_dir,
         num_evals=FLAGS.num_evals,
         eval_op = list(metrics_to_updates.values()),
-        eval_interval_secs=120)
-
+        eval_interval_secs=30)
+    
 evaluate()
