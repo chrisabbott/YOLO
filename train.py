@@ -23,40 +23,113 @@ tf.app.flags.DEFINE_integer('validation_samples', 50000, 'Number of validation s
 tf.app.flags.DEFINE_integer('num_classes', 1000, 'Number of classes in ImageNet')
 
 # Define training flags
-tf.app.flags.DEFINE_float('initial_learning_rate', 0.005, 'Initial learning rate')
-tf.app.flags.DEFINE_integer('batch_size', 128, 'Batch size')
-tf.app.flags.DEFINE_integer('image_size', 224, 'Image size')
-tf.app.flags.DEFINE_integer('max_steps', 400, 'Maximum number of steps before termination')
+tf.app.flags.DEFINE_float('initial_learning_rate', 0.02, 'Initial learning rate')
+tf.app.flags.DEFINE_float('momentum', 0.9, 'Momentum optimizer')
+tf.app.flags.DEFINE_float('adam_epsilon', 0.1, 'Stability value for adam optimizer')
+tf.app.flags.DEFINE_integer('batch_size', 32, 'Batch size')
+tf.app.flags.DEFINE_integer('image_size', 32, 'Image size')
+tf.app.flags.DEFINE_integer('max_steps', None, 'Maximum number of steps before termination')
 tf.app.flags.DEFINE_integer('num_epochs', 1, 'Total number of epochs')
 
 # Define a list of data files
 TRAIN_SHARDS = tf.gfile.Glob(FLAGS.train_dir)
 VAL_SHARDS = tf.gfile.Glob(FLAGS.val_dir)
 
-def train():
-  with tf.Graph().as_default():
-    images, labels = utils.load_batch(batch_size=FLAGS.batch_size, 
-                                      num_epochs=FLAGS.num_epochs, 
-                                      shards=TRAIN_SHARDS)
+#config = tf.ConfigProto(log_device_placement=True)
+#config.gpu_options.per_process_gpu_memory_fraction=0.5 # don't hog all vRAM
 
-    labels = tf.one_hot(labels, depth=1000)
+# Momentum optimizer with log loss
+def train_momentum_logloss():
+    with tf.Graph().as_default():
+        images, labels = utils.load_batch(batch_size=FLAGS.batch_size, 
+                                          num_epochs=FLAGS.num_epochs, 
+                                          shards=TRAIN_SHARDS)
 
-    # Define model
-    predictions = model.tiny_yolo(images, pretrain=True)
+        labels = tf.one_hot(labels, depth=1000)
 
-    # Define loss function and optimizer
-    loss = tf.losses.softmax_cross_entropy(labels, predictions)
-    optimizer = tf.train.GradientDescentOptimizer(learning_rate=FLAGS.initial_learning_rate)
+        # Define model
+        # predictions = model.tiny_yolo(images, is_training=True, pretrain=True)
+        predictions = model.simplenet(images, softmax=True)
 
-    # Create training op
-    train_op = slim.learning.create_train_op(loss, optimizer, summarize_gradients=True)
+        # Define loss function
+        loss = tf.losses.softmax_cross_entropy(labels, predictions)
 
-    # Initialize training
-    slim.learning.train(train_op,
-                        FLAGS.trainlog_dir,
-                        number_of_steps=None,
-                        #number_of_steps=FLAGS.max_steps,
-                        save_summaries_secs=30,
-                        save_interval_secs=30)
+        # Define optimizer
+        optimizer = tf.train.MomentumOptimizer(learning_rate=FLAGS.initial_learning_rate,
+                                               momentum=FLAGS.momentum)
 
-train()
+        # Create training op
+        train_op = slim.learning.create_train_op(loss, optimizer)
+
+        # Initialize training
+        slim.learning.train(train_op,
+                            FLAGS.trainlog_dir,
+                            number_of_steps=FLAGS.max_steps,
+                            save_summaries_secs=30,
+                            save_interval_secs=30)
+                            #session_config=config)
+
+# Gradient descent optimizer with log loss
+def train_gd_logloss():
+    with tf.Graph().as_default():
+        images, labels = utils.load_batch(batch_size=FLAGS.batch_size, 
+                                          num_epochs=FLAGS.num_epochs, 
+                                          shards=TRAIN_SHARDS)
+
+        labels = tf.one_hot(labels, depth=1000)
+
+        # Define model
+        # predictions = model.tiny_yolo(images, is_training=True, pretrain=True)
+        predictions = model.simplenet(images, softmax=True)
+
+        # Define loss function
+        loss = tf.losses.softmax_cross_entropy(labels, predictions)
+
+        # Define optimizer
+        optimizer = tf.train.GradientDescentOptimizer(learning_rate=FLAGS.initial_learning_rate)
+
+        # Create training op
+        train_op = slim.learning.create_train_op(loss, optimizer)
+
+        # Initialize training
+        slim.learning.train(train_op,
+                            FLAGS.trainlog_dir,
+                            number_of_steps=FLAGS.max_steps,
+                            save_summaries_secs=30,
+                            save_interval_secs=30)
+
+# Adam optimizer with log loss
+def train_adam_logloss():
+    with tf.Graph().as_default():
+        images, labels = utils.load_batch(batch_size=FLAGS.batch_size, 
+                                          num_epochs=FLAGS.num_epochs, 
+                                          shards=TRAIN_SHARDS)
+
+        labels = tf.one_hot(labels, depth=1000)
+
+        # Define model
+        # predictions = model.tiny_yolo(images, is_training=True, pretrain=True)
+        predictions = model.simplenet(images, softmax=True, is_training=True)
+
+        # Define loss function
+        loss = tf.losses.softmax_cross_entropy(labels, predictions)
+
+        # Define optimizer
+        optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.initial_learning_rate,
+                                           epsilon=FLAGS.adam_epsilon)
+
+        # Create training op
+        train_op = slim.learning.create_train_op(loss, optimizer)
+        #train_op = slim.optimize_loss(loss,
+        #                              slim.get_global_step(),
+        #                              learning_rate=FLAGS.initial_learning_rate,
+        #                              optimizer='Adam')
+
+        # Initialize training
+        slim.learning.train(train_op,
+                            FLAGS.trainlog_dir,
+                            number_of_steps=FLAGS.max_steps,
+                            save_summaries_secs=30,
+                            save_interval_secs=30)
+
+train_adam_logloss()
