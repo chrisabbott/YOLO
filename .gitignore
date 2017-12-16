@@ -200,3 +200,5 @@ ENV/
 # mypy
 .mypy_cache/
 
+datasets/tiny-imagenet-200
+
