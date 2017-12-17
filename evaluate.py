@@ -44,8 +44,10 @@ def evaluate():
     print_op = tf.Print(input_=labels,
                         data=[labels])
 
-    predictions = model.simplenet(images, softmax=False, is_training=False)
+    #predictions = model.simplenetC(images, softmax=False, is_training=False)
     #predictions = model.tiny_yolo(images, is_training=False, pretrain=True)
+    #predictions = model.VGG_Y(images)
+    predictions = model.smallnet(images)
     predictions = tf.to_int64(tf.argmax(predictions, 1))
 
     metrics_to_values, metrics_to_updates = metrics.aggregate_metric_map({
