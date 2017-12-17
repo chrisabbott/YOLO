@@ -19,14 +19,12 @@ tf.app.flags.DEFINE_string('val_dir', '/home/christian/TinyImagenetYOLO/YOLO/dat
 tf.app.flags.DEFINE_string('log_dir', '/home/christian/TinyImagenetYOLO/YOLO/logs', 'Path to the log folder')
 tf.app.flags.DEFINE_string('trainlog_dir', '/home/christian/TinyImagenetYOLO/YOLO/logs/train', 'Path to the training log folder')
 tf.app.flags.DEFINE_string('evallog_dir', '/home/christian/TinyImagenetYOLO/YOLO/logs/eval', 'Path to the evaluation log folder')
-tf.app.flags.DEFINE_integer('train_samples', 1281167, 'Number of training samples in ImageNet')
-tf.app.flags.DEFINE_integer('validation_samples', 50000, 'Number of validation samples in ImageNet')
-tf.app.flags.DEFINE_integer('num_classes', 1000, 'Number of classes in ImageNet')
+tf.app.flags.DEFINE_integer('num_classes', 200, 'Number of classes in Tiny ImageNet')
 
 # Define training flags
 tf.app.flags.DEFINE_float('initial_learning_rate', 0.02, 'Initial learning rate')
 tf.app.flags.DEFINE_integer('batch_size', 128, 'Batch size')
-tf.app.flags.DEFINE_integer('image_size', 32, 'Image size')
+tf.app.flags.DEFINE_integer('image_size', 64, 'Image size')
 tf.app.flags.DEFINE_integer('max_steps', 400, 'Maximum number of steps before termination')
 tf.app.flags.DEFINE_integer('num_epochs', 1, 'Total number of epochs')
 tf.app.flags.DEFINE_integer('num_evals', 20, 'Number of batches to evaluate')
@@ -39,14 +37,16 @@ def evaluate():
   with tf.Graph().as_default():
     config = tf.ConfigProto(device_count={'GPU':0})
 
-    images, labels = utils.load_batch(batch_size=FLAGS.batch_size, 
-                                      num_epochs=FLAGS.num_epochs, 
-                                      shards=VAL_SHARDS,
+    images, labels = utils.load_batch(shards=VAL_SHARDS,
+                                      batch_size=FLAGS.batch_size,
                                       train=False)
 
+    print_op = tf.Print(input_=labels,
+                        data=[labels])
+
     predictions = model.simplenet(images, softmax=False, is_training=False)
-    # predictions = model.tiny_yolo(images, is_training=False, pretrain=True)
-    predictions = tf.to_int32(tf.argmax(predictions, 1))
+    #predictions = model.tiny_yolo(images, is_training=False, pretrain=True)
+    predictions = tf.to_int64(tf.argmax(predictions, 1))
 
     metrics_to_values, metrics_to_updates = metrics.aggregate_metric_map({
         'mse': metrics.streaming_mean_squared_error(predictions, labels),
