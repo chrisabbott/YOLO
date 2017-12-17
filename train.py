@@ -2,8 +2,6 @@
 # LR = 0.02, Nesterov=False, Batch_size=32, Momentum=0.9, Init=Truncated_normal
 
 import os
-import copy
-import numpy as np
 import tensorflow as tf
 
 from tools import utils
@@ -15,12 +13,12 @@ FLAGS = tf.app.flags.FLAGS
 slim = tf.contrib.slim
 
 # Define os and dataset flags
-tf.app.flags.DEFINE_string('data_dir', '/home/christian/Data/ILSVRC/tfrecords/', 'Path to data directory')
-tf.app.flags.DEFINE_string('train_dir', '/home/christian/TinyImagenetYOLO/YOLO/datasets/tiny-imagenet-200/cached/train.tfrecords', 'Path to training data')
-tf.app.flags.DEFINE_string('val_dir', '/home/christian/TinyImagenetYOLO/YOLO/datasets/tiny-imagenet-200/cached/test.tfrecords', 'Path to validation data')
-tf.app.flags.DEFINE_string('log_dir', '/home/christian/TinyImagenetYOLO/YOLO/logs', 'Path to the log folder')
-tf.app.flags.DEFINE_string('trainlog_dir', '/home/christian/TinyImagenetYOLO/YOLO/logs/train', 'Path to the training log folder')
-tf.app.flags.DEFINE_string('evallog_dir', '/home/christian/TinyImagenetYOLO/YOLO/logs/eval', 'Path to the evaluation log folder')
+tf.app.flags.DEFINE_string('data_dir', os.path.expanduser('~/Data/ILSVRC/tfrecords/'), 'Path to data directory')
+tf.app.flags.DEFINE_string('train_dir', os.path.expanduser('~/TinyImagenetYOLO/YOLO/datasets/tiny-imagenet-200/cached/train.tfrecords'), 'Path to training data')
+tf.app.flags.DEFINE_string('val_dir', os.path.expanduser('~/TinyImagenetYOLO/YOLO/datasets/tiny-imagenet-200/cached/test.tfrecords'), 'Path to validation data')
+tf.app.flags.DEFINE_string('log_dir', os.path.expanduser('~/TinyImagenetYOLO/YOLO/logs'), 'Path to the log folder')
+tf.app.flags.DEFINE_string('trainlog_dir', os.path.expanduser('~/TinyImagenetYOLO/YOLO/logs/train'), 'Path to the training log folder')
+tf.app.flags.DEFINE_string('evallog_dir', os.path.expanduser('~/TinyImagenetYOLO/YOLO/logs/eval'), 'Path to the evaluation log folder')
 tf.app.flags.DEFINE_integer('train_samples', 1281167, 'Number of training samples in ImageNet')
 tf.app.flags.DEFINE_integer('validation_samples', 50000, 'Number of validation samples in ImageNet')
 tf.app.flags.DEFINE_integer('num_classes', 200, 'Number of classes in Tiny ImageNet')
