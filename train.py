@@ -1,5 +1,5 @@
 # Winning combo:
-# LR = 0.02, Nesterov=False, Batch_size=32, Momentum=0.9, Init=Truncated_normal
+# 
 
 import os
 import copy
@@ -26,8 +26,8 @@ tf.app.flags.DEFINE_integer('validation_samples', 50000, 'Number of validation s
 tf.app.flags.DEFINE_integer('num_classes', 200, 'Number of classes in Tiny ImageNet')
 
 # Define training flags
-tf.app.flags.DEFINE_float('initial_learning_rate', 0.05, 'Initial learning rate')
-tf.app.flags.DEFINE_float('momentum', 0.6, 'Momentum optimizer')
+tf.app.flags.DEFINE_float('initial_learning_rate', 0.00001, 'Initial learning rate')
+tf.app.flags.DEFINE_float('momentum', 0.9, 'Momentum optimizer')
 tf.app.flags.DEFINE_float('adam_epsilon', 0.1, 'Stability value for adam optimizer')
 tf.app.flags.DEFINE_integer('batch_size', 128, 'Batch size')
 tf.app.flags.DEFINE_integer('image_size', 64, 'Image size')
@@ -37,6 +37,14 @@ tf.app.flags.DEFINE_integer('num_epochs', 1, 'Total number of epochs')
 # Define a list of data files
 TRAIN_SHARDS = FLAGS.train_dir
 VAL_SHARDS = FLAGS.val_dir
+
+# SMALLNET MODELS ################################################################################
+# Smallnet 1: LR = 0.100,      GD,     L2 = 0.005,  ReLU, Stable but slow, 94k iters, 10% accuracy
+# Smallnet 2: LR = 0.010,      GD,     L2 = 0.005,  ReLU, Stable but slow, 30k iters,  5% accuracy
+# Smallnet 3: LR = 0.010,      GD,     L2 = 0.005,  ELU,  ?
+# Smallnet 4: LR = 0.010,      Adam,   L2 = 0.005,  ReLU, epsilon = 0.1, ?
+# Smallnet 5: LR = 0.010,      Adagrad,L2 = 0.005,  ReLU, ?
+##################################################################################################
 
 #config = tf.ConfigProto(log_device_placement=True)
 #config.gpu_options.per_process_gpu_memory_fraction=0.5 # don't hog all vRAM
@@ -55,7 +63,7 @@ def train_momentum_cross_entropy():
 
         # Define model
         #predictions = model.tiny_yolo(images, is_training=True, pretrain=True)
-        predictions = model.simplenetC(images, softmax=True)
+        predictions = model.AlexNet(images, is_training=True)
 
         # Define loss function
         loss = tf.losses.softmax_cross_entropy(labels, predictions)
@@ -77,7 +85,40 @@ def train_momentum_cross_entropy():
                             save_interval_secs=30)
 
 # Gradient descent optimizer with log loss
+# LR = 0.05 from steps 0 - 22.5k
+# LR = 0.02 from steps 22.5k
 def train_gd_cross_entropy():
+    with tf.Graph().as_default():
+        images, labels = utils.load_batch(shards=TRAIN_SHARDS,
+                                          batch_size=FLAGS.batch_size,
+                                          train=True)
+
+        labels = tf.one_hot(labels, depth=200)
+
+        # Define model
+        # predictions = model.tiny_yolo(images, is_training=True, pretrain=True)
+        # predictions = model.simplenetC(images, softmax=True)
+        predictions = model.smallnet1(images)
+
+        # Define loss function
+        loss = tf.losses.softmax_cross_entropy(labels, predictions)
+        tf.summary.scalar('loss', loss)
+
+        # Define optimizer
+        optimizer = tf.train.GradientDescentOptimizer(learning_rate=FLAGS.initial_learning_rate)
+
+        # Create training op
+        train_op = slim.learning.create_train_op(loss, optimizer)
+
+        # Initialize training
+        slim.learning.train(train_op,
+                            FLAGS.trainlog_dir,
+                            number_of_steps=FLAGS.max_steps,
+                            save_summaries_secs=30,
+                            save_interval_secs=30)
+
+
+def train_adadelta_cross_entropy():
     with tf.Graph().as_default():
         images, labels = utils.load_batch(shards=TRAIN_SHARDS,
                                           batch_size=FLAGS.batch_size,
@@ -95,7 +136,7 @@ def train_gd_cross_entropy():
         tf.summary.scalar('loss', loss)
 
         # Define optimizer
-        optimizer = tf.train.GradientDescentOptimizer(learning_rate=FLAGS.initial_learning_rate)
+        optimizer = tf.train.AdadeltaOptimizer(learning_rate=FLAGS.initial_learning_rate)
 
         # Create training op
         train_op = slim.learning.create_train_op(loss, optimizer)
@@ -117,9 +158,7 @@ def train_adam_cross_entropy():
         labels = tf.one_hot(labels, depth=200)
 
         # Define model
-        # predictions = model.tiny_yolo(images, is_training=True, pretrain=True)
-        # predictions = model.simplenetC(images, softmax=True, is_training=True)
-        predictions = model.VGG_Y(images)
+        predictions = model.smallnet4(images)
 
         # Define loss function
         loss = tf.losses.softmax_cross_entropy(labels, predictions)
@@ -171,7 +210,8 @@ def train_rmsprop_momentum_cross_entropy():
                             save_summaries_secs=30,
                             save_interval_secs=30)
 
-#train_momentum_cross_entropy()
-train_gd_cross_entropy()
+train_momentum_cross_entropy()
+#train_gd_cross_entropy()
+#train_adadelta_cross_entropy()
 #train_adam_cross_entropy()
 #train_rmsprop_momentum_cross_entropy()
