@@ -175,7 +175,7 @@ def simplenetC(inputs, softmax=False, is_training=True):
       net = array_ops.squeeze(net, [1, 2])
       return net
     
-def smallnet(inputs):
+def smallnet1(inputs, is_training=True):
   with slim.arg_scope([slim.conv2d],
                       activation_fn=tf.nn.relu,
                       normalizer_fn=slim.batch_norm,
@@ -200,6 +200,147 @@ def smallnet(inputs):
     net = slim.conv2d(net, 512, [3,3])
     net = slim.conv2d(net, 512, [3,3])
     net = slim.max_pool2d(net, [2,2])
+    net = slim.dropout(net, is_training=is_training)
+
+    net = slim.fully_connected(net, 4096)
+    net = slim.fully_connected(net, 4096)
+    net = slim.fully_connected(net, 200, activation_fn=slim.softmax)
+    net = slim.max_pool2d(net, [2,2])
+    net = array_ops.squeeze(net, [1, 2])
+
+    return net
+
+def smallnet2(inputs, is_training=True):
+  with slim.arg_scope([slim.conv2d],
+                      activation_fn=tf.nn.relu,
+                      normalizer_fn=slim.batch_norm,
+                      weights_initializer=tf.contrib.layers.xavier_initializer(),
+                      weights_regularizer=slim.l2_regularizer(0.005),
+                      stride=1):
+
+    net = slim.conv2d(inputs, 64, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+
+    net = slim.conv2d(net, 128, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+
+    net = slim.conv2d(net, 256, [3,3])
+    net = slim.conv2d(net, 256, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+
+    net = slim.conv2d(net, 512, [3,3])
+    net = slim.conv2d(net, 512, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+
+    net = slim.conv2d(net, 512, [3,3])
+    net = slim.conv2d(net, 512, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+    net = slim.dropout(net, is_training=is_training)
+
+    net = slim.fully_connected(net, 4096)
+    net = slim.fully_connected(net, 4096)
+    net = slim.fully_connected(net, 200, activation_fn=slim.softmax)
+    net = slim.max_pool2d(net, [2,2])
+    net = array_ops.squeeze(net, [1, 2])
+
+    return net
+
+def smallnet3(inputs, is_training=True):
+  with slim.arg_scope([slim.conv2d],
+                      activation_fn=tf.nn.elu,
+                      normalizer_fn=slim.batch_norm,
+                      weights_initializer=tf.contrib.layers.xavier_initializer(),
+                      weights_regularizer=slim.l2_regularizer(0.005),
+                      stride=1):
+
+    net = slim.conv2d(inputs, 64, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+
+    net = slim.conv2d(net, 128, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+
+    net = slim.conv2d(net, 256, [3,3])
+    net = slim.conv2d(net, 256, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+
+    net = slim.conv2d(net, 512, [3,3])
+    net = slim.conv2d(net, 512, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+
+    net = slim.conv2d(net, 512, [3,3])
+    net = slim.conv2d(net, 512, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+    net = slim.dropout(net, is_training=is_training)
+
+    net = slim.fully_connected(net, 4096)
+    net = slim.fully_connected(net, 4096)
+    net = slim.fully_connected(net, 200, activation_fn=slim.softmax)
+    net = slim.max_pool2d(net, [2,2])
+    net = array_ops.squeeze(net, [1, 2])
+
+    return net
+
+def smallnet4(inputs, is_training=True):
+  with slim.arg_scope([slim.conv2d],
+                      activation_fn=tf.nn.relu,
+                      normalizer_fn=slim.batch_norm,
+                      weights_initializer=tf.contrib.layers.xavier_initializer(),
+                      weights_regularizer=slim.l2_regularizer(0.005),
+                      stride=1):
+
+    net = slim.conv2d(inputs, 64, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+
+    net = slim.conv2d(net, 128, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+
+    net = slim.conv2d(net, 256, [3,3])
+    net = slim.conv2d(net, 256, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+
+    net = slim.conv2d(net, 512, [3,3])
+    net = slim.conv2d(net, 512, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+
+    net = slim.conv2d(net, 512, [3,3])
+    net = slim.conv2d(net, 512, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+    net = slim.dropout(net, is_training=is_training)
+
+    net = slim.fully_connected(net, 4096)
+    net = slim.fully_connected(net, 4096)
+    net = slim.fully_connected(net, 200, activation_fn=slim.softmax)
+    net = slim.max_pool2d(net, [2,2])
+    net = array_ops.squeeze(net, [1, 2])
+
+    return net
+
+def smallnet5(inputs, is_training=True):
+  with slim.arg_scope([slim.conv2d],
+                      activation_fn=tf.nn.relu,
+                      normalizer_fn=slim.batch_norm,
+                      weights_initializer=tf.contrib.layers.xavier_initializer(),
+                      weights_regularizer=slim.l2_regularizer(0.005),
+                      stride=1):
+
+    net = slim.conv2d(inputs, 64, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+
+    net = slim.conv2d(net, 128, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+
+    net = slim.conv2d(net, 256, [3,3])
+    net = slim.conv2d(net, 256, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+
+    net = slim.conv2d(net, 512, [3,3])
+    net = slim.conv2d(net, 512, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+
+    net = slim.conv2d(net, 512, [3,3])
+    net = slim.conv2d(net, 512, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+    net = slim.dropout(net, is_training=is_training)
 
     net = slim.fully_connected(net, 4096)
     net = slim.fully_connected(net, 4096)
@@ -234,4 +375,26 @@ def VGG_Y(inputs):
 
     net = slim.flatten(net)
     net = slim.fully_connected(net, 200, activation_fn=slim.softmax)
+    return net
+
+def AlexNet(inputs, is_training=True):
+  with slim.arg_scope([slim.conv2d],
+                      activation_fn=tf.nn.relu,
+                      normalizer_fn=slim.batch_norm,
+                      weights_initializer=tf.contrib.layers.xavier_initializer(),
+                      weights_regularizer=slim.l2_regularizer(0.0005),
+                      stride=1):
+    net = slim.conv2d(inputs, 96, [5,5], stride=4)
+    net = slim.max_pool2d(net, [2,2])
+    net = slim.conv2d(net, 256, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+    net = slim.conv2d(net, 256, [3,3])
+    net = slim.conv2d(net, 128, [3,3])
+    net = slim.conv2d(net, 64, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+    net = slim.fully_connected(net, 4096)
+    net = slim.dropout(net, is_training=is_training)
+    net = slim.fully_connected(net, 4096)
+    net = slim.flatten(net)
+    net = slim.fully_connected(net, 200)
     return net
