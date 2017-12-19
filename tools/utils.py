@@ -14,6 +14,9 @@ slim = tf.contrib.slim
 tf.app.flags.DEFINE_integer('num_threads', 4, 'Number of threads to use in preprocessing and loading')
 tf.app.flags.DEFINE_integer('num_readers', 4, 'Number of readers to use in loading')
 tf.app.flags.DEFINE_integer('input_queue_memory_factor', 1, 'Hyperparameter for memory usage')
+tf.app.flags.DEFINE_integer('min_after_dequeue', 10, 'Minimum queues after dequeue')
+tf.app.flags.DEFINE_integer('batch_size', 256, 'Batch size')
+tf.app.flags.DEFINE_integer('image_size', 64, 'Image size')
 
 def load_batch(shards, batch_size, train=True):
 
@@ -81,3 +84,46 @@ def load_batch(shards, batch_size, train=True):
   tf.summary.image('images', images)
 
   return images, tf.reshape(label_index_batch, [batch_size])
+
+
+def read_and_decode(filename_queue):
+
+  reader = tf.TFRecordReader()
+  _, serialized_example = reader.read(filename_queue)
+
+  features = tf.parse_single_example(serialized_example,
+                                     features = {
+                                        'height': tf.FixedLenFeature([], tf.int64),
+                                        'width': tf.FixedLenFeature([], tf.int64),
+                                        'image_raw': tf.FixedLenFeature([], tf.string),
+                                        'label': tf.FixedLenFeature([], tf.int64)})
+
+  image_buffer = tf.decode_raw(features['image_raw'], tf.uint8)
+  image = tf.cast(image_buffer, tf.float32)
+  image = tf.reshape(image, (64,64,3))
+  label = tf.cast(features['label'], tf.int64)
+
+  return image, label
+
+
+def load_local_dataset(shards='/home/christian/TinyImagenetYOLO/YOLO/datasets/tiny-imagenet-200/cached/train.tfrecords'):
+  filename_queue = tf.train.string_input_producer([shards])
+  image, label = read_and_decode(filename_queue)
+  capacity = FLAGS.min_after_dequeue + 3 * FLAGS.batch_size
+  images, labels = tf.train.shuffle_batch([image, label],
+                                           batch_size=FLAGS.batch_size,
+                                           capacity=capacity,
+                                           min_after_dequeue=FLAGS.min_after_dequeue)
+  
+  # Reshape images into these desired dimensions.
+  height = FLAGS.image_size
+  width = FLAGS.image_size
+  depth = 3
+
+  images = tf.cast(images, tf.float32)
+  images = tf.reshape(images, shape=[FLAGS.batch_size, height, width, depth])
+
+  # Display the training images in the visualizer.
+  tf.summary.image('images', images)
+
+  return images, tf.reshape(labels, [FLAGS.batch_size])
