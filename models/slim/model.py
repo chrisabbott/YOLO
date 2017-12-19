@@ -398,3 +398,120 @@ def AlexNet(inputs, is_training=True):
     net = slim.flatten(net)
     net = slim.fully_connected(net, 200)
     return net
+
+def AlexNetLarge(inputs, is_training=True):
+  with slim.arg_scope([slim.conv2d],
+                      activation_fn=tf.nn.relu,
+                      normalizer_fn=slim.batch_norm,
+                      weights_initializer=tf.contrib.layers.xavier_initializer(),
+                      weights_regularizer=slim.l2_regularizer(0.0005),
+                      stride=1):
+    net = slim.conv2d(inputs, 96, [11,11], stride=4)
+    net = slim.max_pool2d(net, [3,3], stride=2)
+    net = slim.conv2d(net, 256, [5,5], stride=1)
+    net = slim.max_pool2d(net, [3,3], stride=2)
+    net = slim.conv2d(net, 384, [3,3])
+    net = slim.conv2d(net, 384, [3,3])
+    net = slim.conv2d(net, 256, [3,3])
+    net = slim.max_pool2d(net, [3,3])
+    net = slim.fully_connected(net, 4096)
+    net = slim.dropout(net, is_training=is_training)
+    net = slim.fully_connected(net, 4096)
+    net = slim.flatten(net)
+    net = slim.fully_connected(net, 200)
+    return net
+
+def ChrisNet(inputs, is_training=True):
+  with slim.arg_scope([slim.conv2d],
+                      activation_fn=tf.nn.relu,
+                      normalizer_fn=slim.batch_norm,
+                      weights_initializer=tf.contrib.layers.xavier_initializer(),
+                      weights_regularizer=slim.l2_regularizer(0.0005),
+                      stride=1):
+    net = slim.conv2d(inputs, 96, [7,7], stride=4)
+    net = tf.nn.fractional_max_pool(net, 
+                                    pooling_ratio=[1.0,1.6,1.6,1.0],
+                                    deterministic=True)[0]
+
+    net = slim.conv2d(net, 256, [5,5])
+    net = tf.nn.fractional_max_pool(net, 
+                                    pooling_ratio=[1.0,1.6,1.6,1.0],
+                                    deterministic=True)[0]
+
+    net = slim.conv2d(net, 256, [3,3])
+    net = slim.conv2d(net, 128, [3,3])
+    net = tf.nn.fractional_max_pool(net, 
+                                    pooling_ratio=[1.0,1.6,1.6,1.0],
+                                    deterministic=True)[0]
+
+    net = slim.conv2d(net, 256, [3,3])
+    net = slim.conv2d(net, 128, [3,3])
+    net = slim.conv2d(net, 64, [3,3])
+    net = tf.nn.fractional_max_pool(net, 
+                                    pooling_ratio=[1.0,1.6,1.6,1.0],
+                                    deterministic=True)[0]
+
+    net = slim.fully_connected(net, 4096)
+    net = slim.dropout(net, is_training=is_training)
+    net = slim.fully_connected(net, 4096)
+    net = slim.fully_connected(net, 200)
+    net = array_ops.squeeze(net, [1, 2])
+    return net
+
+
+def VGG16Custom(inputs):
+  with slim.arg_scope([slim.conv2d],
+                      activation_fn=tf.nn.relu,
+                      normalizer_fn=slim.batch_norm,
+                      weights_initializer=tf.contrib.layers.xavier_initializer(),
+                      weights_regularizer=slim.l2_regularizer(0.0005),
+                      stride=1):
+    net = slim.conv2d(inputs, 32, [3,3])
+    net = slim.conv2d(net, 32, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+
+    net = slim.conv2d(net, 64, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+
+    net = slim.conv2d(net, 128, [3,3])
+    net = slim.conv2d(net, 128, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+
+    net = slim.conv2d(net, 256, [3,3])
+    net = slim.conv2d(net, 256, [3,3])
+    net = slim.conv2d(net, 512, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+
+    net = slim.fully_connected(net, 4096, activation_fn=tf.nn.relu)
+    net = slim.fully_connected(net, 4096, activation_fn=tf.nn.relu)
+    net = slim.flatten(net)
+    net = slim.fully_connected(net, 200, activation_fn=slim.softmax)
+    return net
+
+
+def AlexNetXL(inputs, is_training=True):
+  with slim.arg_scope([slim.conv2d],
+                      activation_fn=tf.nn.relu,
+                      #normalizer_fn=slim.batch_norm,
+                      weights_initializer=tf.contrib.layers.xavier_initializer(),
+                      #weights_regularizer=slim.l2_regularizer(0.0005),
+                      stride=1):
+    net = slim.conv2d(inputs, 96, [11,11], stride=4)
+    net = slim.conv2d(net, 256, [5,5], stride=1)
+    net = slim.max_pool2d(net, [3,3], stride=2)
+    net = slim.conv2d(net, 384, [3,3])
+    net = slim.conv2d(net, 384, [3,3])
+    net = slim.conv2d(net, 256, [3,3])
+    net = slim.max_pool2d(net, [3,3])
+    net = slim.conv2d(net, 256, [3,3])
+    net = slim.conv2d(net, 128, [3,3])
+    net = slim.conv2d(net, 64, [3,3])
+    net = slim.max_pool2d(net, [3,3])
+    net = slim.fully_connected(net, 4096)
+    #net = slim.dropout(net, is_training=is_training)
+    net = slim.fully_connected(net, 4096)
+    #net = slim.dropout(net, is_training=is_training)
+    net = slim.fully_connected(net, 200)
+    net = array_ops.squeeze(net, [1, 2])
+    return net
+
