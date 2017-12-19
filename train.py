@@ -8,11 +8,10 @@ import tensorflow as tf
 
 from tools import utils
 from models.slim import model
-import tensorflow.contrib.slim.nets as nets
-vgg = nets.vgg
 
 FLAGS = tf.app.flags.FLAGS
 slim = tf.contrib.slim
+from tensorflow.contrib.slim.python.slim.nets import inception
 
 # Define os and dataset flags
 tf.app.flags.DEFINE_string('data_dir', '/home/christian/Data/ILSVRC/tfrecords/', 'Path to data directory')
@@ -26,10 +25,11 @@ tf.app.flags.DEFINE_integer('validation_samples', 50000, 'Number of validation s
 tf.app.flags.DEFINE_integer('num_classes', 200, 'Number of classes in Tiny ImageNet')
 
 # Define training flags
-tf.app.flags.DEFINE_float('initial_learning_rate', 0.00001, 'Initial learning rate')
+tf.app.flags.DEFINE_float('initial_learning_rate', 0.1, 'Initial learning rate')
+tf.app.flags.DEFINE_float('learning_rate_decay', 0.5, 'Learning rate decay')
 tf.app.flags.DEFINE_float('momentum', 0.9, 'Momentum optimizer')
 tf.app.flags.DEFINE_float('adam_epsilon', 0.1, 'Stability value for adam optimizer')
-tf.app.flags.DEFINE_integer('batch_size', 128, 'Batch size')
+tf.app.flags.DEFINE_integer('batch_size', 256, 'Batch size')
 tf.app.flags.DEFINE_integer('image_size', 64, 'Image size')
 tf.app.flags.DEFINE_integer('max_steps', None, 'Maximum number of steps before termination')
 tf.app.flags.DEFINE_integer('num_epochs', 1, 'Total number of epochs')
@@ -38,13 +38,14 @@ tf.app.flags.DEFINE_integer('num_epochs', 1, 'Total number of epochs')
 TRAIN_SHARDS = FLAGS.train_dir
 VAL_SHARDS = FLAGS.val_dir
 
-# SMALLNET MODELS ################################################################################
-# Smallnet 1: LR = 0.100,      GD,     L2 = 0.005,  ReLU, Stable but slow, 94k iters, 10% accuracy
-# Smallnet 2: LR = 0.010,      GD,     L2 = 0.005,  ReLU, Stable but slow, 30k iters,  5% accuracy
-# Smallnet 3: LR = 0.010,      GD,     L2 = 0.005,  ELU,  ?
-# Smallnet 4: LR = 0.010,      Adam,   L2 = 0.005,  ReLU, epsilon = 0.1, ?
-# Smallnet 5: LR = 0.010,      Adagrad,L2 = 0.005,  ReLU, ?
-##################################################################################################
+# SMALLNET MODELS #####################################################################################
+# Smallnet 1: LR = 0.100,      GD,          L2 = 0.005,  ReLU, Stable but slow, 94k iters, 10% accuracy
+# Smallnet 2: LR = 0.010,      GD,          L2 = 0.005,  ReLU, Stable but slow, 30k iters,  5% accuracy
+# Smallnet 3: LR = 0.010,      GD,          L2 = 0.005,  ELU,  ?
+# Smallnet 4: LR = 0.010,      Adam,        L2 = 0.005,  ReLU, epsilon = 0.1, ?
+# Smallnet 5: LR = 0.010,      Adagrad,     L2 = 0.005,  ReLU, ?
+# AlexNet:    LR = 0.010,      Momentum,    L2 = 0.0005, ReLU, Stable and fast, 18k iters, 29% accuracy
+#######################################################################################################
 
 #config = tf.ConfigProto(log_device_placement=True)
 #config.gpu_options.per_process_gpu_memory_fraction=0.5 # don't hog all vRAM
@@ -53,6 +54,13 @@ VAL_SHARDS = FLAGS.val_dir
 # Replace nesterov=False and momentum=0.9 for the best momentum classifier so far
 def train_momentum_cross_entropy():
     with tf.Graph().as_default():
+        global_step = slim.get_or_create_global_step()
+
+        learning_rate = tf.train.inverse_time_decay(learning_rate=FLAGS.initial_learning_rate,
+                                                    global_step=global_step,
+                                                    decay_steps=9000,
+                                                    decay_rate=FLAGS.learning_rate_decay)
+
         images, labels = utils.load_batch(shards=TRAIN_SHARDS,
                                           batch_size=FLAGS.batch_size,
                                           train=True)
@@ -62,8 +70,8 @@ def train_momentum_cross_entropy():
                             data=[labels])
 
         # Define model
-        #predictions = model.tiny_yolo(images, is_training=True, pretrain=True)
-        predictions = model.AlexNet(images, is_training=True)
+        # predictions = model.AlexNetXL(images)
+        predictions = model.AlexNetXL(images)
 
         # Define loss function
         loss = tf.losses.softmax_cross_entropy(labels, predictions)

@@ -23,7 +23,7 @@ tf.app.flags.DEFINE_integer('num_classes', 200, 'Number of classes in Tiny Image
 
 # Define training flags
 tf.app.flags.DEFINE_float('initial_learning_rate', 0.0001, 'Initial learning rate')
-tf.app.flags.DEFINE_integer('batch_size', 128, 'Batch size')
+tf.app.flags.DEFINE_integer('batch_size', 1024, 'Batch size')
 tf.app.flags.DEFINE_integer('image_size', 64, 'Image size')
 tf.app.flags.DEFINE_integer('max_steps', 400, 'Maximum number of steps before termination')
 tf.app.flags.DEFINE_integer('num_epochs', 1, 'Total number of epochs')
@@ -44,11 +44,7 @@ def evaluate():
     print_op = tf.Print(input_=labels,
                         data=[labels])
 
-    #predictions = model.simplenetC(images, softmax=False, is_training=False)
-    #predictions = model.tiny_yolo(images, is_training=False, pretrain=True)
-    #predictions = model.VGG_Y(images)
-    #predictions = model.smallnet4(images)
-    predictions = model.AlexNet(images, is_training=False)
+    predictions = model.AlexNetXL(images, is_training=False)
     predictions = tf.to_int64(tf.argmax(predictions, 1))
 
     metrics_to_values, metrics_to_updates = metrics.aggregate_metric_map({
