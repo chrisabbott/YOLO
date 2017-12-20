@@ -15,8 +15,8 @@ tf.app.flags.DEFINE_integer('num_threads', 4, 'Number of threads to use in prepr
 tf.app.flags.DEFINE_integer('num_readers', 4, 'Number of readers to use in loading')
 tf.app.flags.DEFINE_integer('input_queue_memory_factor', 1, 'Hyperparameter for memory usage')
 tf.app.flags.DEFINE_integer('min_after_dequeue', 10, 'Minimum queues after dequeue')
-tf.app.flags.DEFINE_integer('batch_size', 256, 'Batch size')
-tf.app.flags.DEFINE_integer('image_size', 64, 'Image size')
+# tf.app.flags.DEFINE_integer('batch_size', 256, 'Batch size')
+# tf.app.flags.DEFINE_integer('image_size', 64, 'Image size')
 
 def load_batch(shards, batch_size, train=True):
 
