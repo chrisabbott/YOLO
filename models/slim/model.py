@@ -3,6 +3,18 @@ from tensorflow.python.ops import array_ops
 
 slim = tf.contrib.slim
 
+def baseline(inputs):
+  with slim.arg_scope([slim.conv2d],
+                      activation_fn=tf.nn.relu,
+                      weights_initializer=tf.truncated_normal_initializer(stddev=0.1),
+                      weights_regularizer=slim.l2_regularizer(0.0005)):
+    net = slim.conv2d(inputs, 16, [3,3])
+    net = slim.max_pool2d(net, [2,2])
+    net = slim.fully_connected(net, 1024, activation_fn=tf.nn.relu)
+    net = slim.flatten(net)
+    net = slim.fully_connected(net, 200)
+    return net
+
 def tiny_yolo(inputs, is_training=True, pretrain=False):
   with slim.arg_scope([slim.conv2d],
                       activation_fn=tf.nn.relu,
@@ -82,6 +94,7 @@ def simplenetA(inputs, softmax=False, is_training=True):
       net = array_ops.squeeze(net, [1, 2])
       return net
     
+
 def simplenetB(inputs, softmax=False, is_training=True):
   with slim.arg_scope([slim.conv2d],
                       activation_fn=tf.nn.relu,
@@ -173,6 +186,7 @@ def simplenetC(inputs, softmax=False, is_training=True):
       net = array_ops.squeeze(net, [1, 2])
       return net
     
+
 def smallnet1(inputs, is_training=True):
   with slim.arg_scope([slim.conv2d],
                       activation_fn=tf.nn.relu,
@@ -207,6 +221,7 @@ def smallnet1(inputs, is_training=True):
     net = array_ops.squeeze(net, [1, 2])
 
     return net
+
 
 def smallnet2(inputs, is_training=True):
   with slim.arg_scope([slim.conv2d],
@@ -243,6 +258,7 @@ def smallnet2(inputs, is_training=True):
 
     return net
 
+
 def smallnet3(inputs, is_training=True):
   with slim.arg_scope([slim.conv2d],
                       activation_fn=tf.nn.elu,
@@ -277,6 +293,7 @@ def smallnet3(inputs, is_training=True):
     net = array_ops.squeeze(net, [1, 2])
 
     return net
+
 
 def smallnet4(inputs, is_training=True):
   with slim.arg_scope([slim.conv2d],
@@ -313,6 +330,7 @@ def smallnet4(inputs, is_training=True):
 
     return net
 
+
 def smallnet5(inputs, is_training=True):
   with slim.arg_scope([slim.conv2d],
                       activation_fn=tf.nn.relu,
@@ -347,6 +365,7 @@ def smallnet5(inputs, is_training=True):
     net = array_ops.squeeze(net, [1, 2])
 
     return net
+
 
 def VGG_Y(inputs):
   with slim.arg_scope([slim.conv2d],
@@ -398,6 +417,7 @@ def AlexNet(inputs, is_training=True):
     net = slim.fully_connected(net, 200)
     return net
 
+
 def AlexNetLarge(inputs, is_training=True):
   with slim.arg_scope([slim.conv2d],
                       activation_fn=tf.nn.relu,
@@ -419,6 +439,7 @@ def AlexNetLarge(inputs, is_training=True):
     net = slim.flatten(net)
     net = slim.fully_connected(net, 200)
     return net
+
 
 def ChrisNet(inputs, is_training=True):
   with slim.arg_scope([slim.conv2d],
