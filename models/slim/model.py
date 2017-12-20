@@ -1,6 +1,4 @@
 import tensorflow as tf
-import os
-
 from tensorflow.python.ops import array_ops
 
 slim = tf.contrib.slim
@@ -377,6 +375,7 @@ def VGG_Y(inputs):
     net = slim.fully_connected(net, 200, activation_fn=slim.softmax)
     return net
 
+
 def AlexNet(inputs, is_training=True):
   with slim.arg_scope([slim.conv2d],
                       activation_fn=tf.nn.relu,
@@ -514,4 +513,3 @@ def AlexNetXL(inputs, is_training=True):
     net = slim.fully_connected(net, 200)
     net = array_ops.squeeze(net, [1, 2])
     return net
-

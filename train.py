@@ -1,9 +1,6 @@
 # Winning combo:
 # 
 
-import os
-import copy
-import numpy as np
 import tensorflow as tf
 
 from tools import utils
@@ -11,7 +8,6 @@ from models.slim import model
 
 FLAGS = tf.app.flags.FLAGS
 slim = tf.contrib.slim
-from tensorflow.contrib.slim.python.slim.nets import inception
 
 # Define os and dataset flags
 tf.app.flags.DEFINE_string('data_dir', '/home/christian/Data/ILSVRC/tfrecords/', 'Path to data directory')

@@ -1,10 +1,6 @@
-import os
-import copy
-import numpy as np
-import tensorflow as tf
-
 from tools import utils
 from models.slim import model
+import tensorflow as tf
 import tensorflow.contrib.slim.nets as nets
 vgg = nets.vgg
 
